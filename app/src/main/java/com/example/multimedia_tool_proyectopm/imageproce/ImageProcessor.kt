@@ -2,6 +2,7 @@ package com.example.multimedia_tool_proyectopm.imageproce
 
 import android.graphics.Bitmap
 import androidx.core.graphics.get
+import androidx.core.graphics.set
 
 interface ImageProcessor{
     val name: String
@@ -25,7 +26,7 @@ class GrayscaleProcessor: ImageProcessor {
                 val a = (c ushr 24) and 0XFF
                 val gray = (0.299 * r + 0.587 * g + 0.144 * b).toInt()
                 val newC = (0.299 * r + 0.587 * g + 0.144 * b).toInt()
-                out.setPixel(x,y,newC)
+                out[x, y] = newC
             }
             }
         return out

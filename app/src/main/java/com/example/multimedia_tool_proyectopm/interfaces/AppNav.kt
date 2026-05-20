@@ -12,6 +12,8 @@ object Routes{
     const val HOME = "home"
     const val AUDIO_LIST = "audio_list"
     const val AUDIO = "audio"
+    const val IMAGE = "image"
+    const val CAMERA = "camera"
     const val VIDEO = "video"
 }
 
@@ -35,6 +37,8 @@ fun AppNav(navController: NavHostController) {
             AudioScreen(navController = navController, fileName = fileName)
         }
 
+        composable(Routes.IMAGE) { PhotoScreen() }
+        composable(Routes.CAMERA) { CameraScreen() }
         composable(Routes.VIDEO) { VideoPlayerScreen(navController) }
     }
 }

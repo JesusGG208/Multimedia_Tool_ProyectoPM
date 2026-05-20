@@ -23,9 +23,9 @@ object ImageStorage {
         bitmap: Bitmap,
         outputFile: File,
         format: Bitmap.CompressFormat
-    ) {
+    ): Boolean {
 
-        try {
+        return try {
 
             FileOutputStream(outputFile).use { stream ->
 
@@ -36,8 +36,11 @@ object ImageStorage {
                 )
             }
 
+            true
+
         } catch (_: Exception) {
 
+            false
         }
     }
 }

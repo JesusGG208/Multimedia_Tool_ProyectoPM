@@ -30,17 +30,17 @@ fun HomeScreen(navController: NavHostController) {
         }
         Button(
             onClick = {
-                navController.navigate(Routes.AUDIO_LIST)
+                navController.navigate(Routes.IMAGE)
             }
         ) {
-            Text("Grabadora de audio")
+            Text("Imagen")
         }
         Button(
             onClick = {
-                navController.navigate(Routes.AUDIO_LIST)
+                navController.navigate(Routes.CAMERA)
             }
         ) {
-            Text("Grabadora de audio")
+            Text("Cámara")
         }
         Button(
             onClick = {

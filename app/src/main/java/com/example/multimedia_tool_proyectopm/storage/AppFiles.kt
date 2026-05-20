@@ -30,23 +30,27 @@ object AppFiles {
             ?: emptyList()
     }
 
-    fun createImageFile(context: Context): File {
-        val fecha = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "imagen_${fecha}.jpg"
-        return File(context.filesDir, fileName)
+    fun latestPhotoFile(context: Context): File {
+
+        return File(
+            context.filesDir,
+            "latest_photo.jpg"
+        )
     }
 
-    fun getImages(context: Context): List<File> {
-        return context.filesDir.listFiles()
-            ?.filter {
-                it.name.endsWith("jpg") ||
-                        it.name.endsWith("png")
-            }
-            ?: emptyList()
+    fun processedPngFile(context: Context): File {
+
+        return File(
+            context.filesDir,
+            "processed_image.png"
+        )
     }
 
-    fun changeExtension(file: File, extension: String): File {
-        val cleanName = file.nameWithoutExtension
-        return File(file.parent, "$cleanName.$extension")
+    fun processedJpgFile(context: Context): File {
+
+        return File(
+            context.filesDir,
+            "processed_image.jpg"
+        )
     }
 }
