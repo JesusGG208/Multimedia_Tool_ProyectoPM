@@ -16,7 +16,7 @@ import com.example.multimedia_tool_proyectopm.storage.AppFiles
 import com.example.multimedia_tool_proyectopm.storage.Bit_Map
 
 @Composable
-fun GalleryScreen(navController: NavController) {
+fun PhotoScreen(navController: NavController) {
 
     val context = LocalContext.current
 
@@ -134,7 +134,7 @@ fun GalleryScreen(navController: NavController) {
 
                     saveMessage = "Imagen JPG creada"
 
-                    images = FileHelper.getImages(context)
+                    images = AppFiles.getImages(context)
 
                 }) {
                     Text("Guardar JPG")
