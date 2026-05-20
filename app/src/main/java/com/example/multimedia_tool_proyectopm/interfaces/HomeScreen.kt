@@ -28,5 +28,26 @@ fun HomeScreen(navController: NavHostController) {
         ) {
             Text("Grabadora de audio")
         }
+        Button(
+            onClick = {
+                navController.navigate(Routes.AUDIO_LIST)
+            }
+        ) {
+            Text("Grabadora de audio")
+        }
+        Button(
+            onClick = {
+                navController.navigate(Routes.AUDIO_LIST)
+            }
+        ) {
+            Text("Grabadora de audio")
+        }
+        Button(
+            onClick = {
+                navController.navigate(Routes.VIDEO)
+            }
+        ) {
+            Text("Reproductor de vídeo")
+        }
     }
 }
