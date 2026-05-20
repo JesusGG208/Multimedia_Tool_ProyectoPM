@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.multimedia_tool_proyectopm.storage.AppFiles
-import com.example.multimedia_tool_proyectopm.storage.Bit_Map
+import com.example.multimedia_tool_proyectopm.storage.ImageStorage
 
 @Composable
 fun PhotoScreen(navController: NavController) {
@@ -63,7 +63,7 @@ fun PhotoScreen(navController: NavController) {
 
         selectedImage?.let { file ->
 
-            val bitmap = Bit_Map.readBitmap(file)
+            val bitmap = ImageStorage.readBitmap(file)
 
             bitmap?.let {
                 Image(
@@ -107,7 +107,7 @@ fun PhotoScreen(navController: NavController) {
                     val newFile =
                         AppFiles.changeExtension(file, "png")
 
-                    Bit_Map.saveBitmap(
+                    ImageStorage.saveBitmap(
                         bitmap,
                         newFile,
                         Bitmap.CompressFormat.PNG
@@ -126,7 +126,7 @@ fun PhotoScreen(navController: NavController) {
                     val newFile =
                         AppFiles.changeExtension(file, "jpg")
 
-                    Bit_Map.saveBitmap(
+                    ImageStorage.saveBitmap(
                         bitmap,
                         newFile,
                         Bitmap.CompressFormat.JPEG

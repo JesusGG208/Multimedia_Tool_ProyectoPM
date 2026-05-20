@@ -1,11 +1,12 @@
 package com.example.multimedia_tool_proyectopm.storage
 
+
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.File
 import java.io.FileOutputStream
 
-object Bit_Map {
+object ImageStorage {
 
     fun readBitmap(imageFile: File): Bitmap? {
 
