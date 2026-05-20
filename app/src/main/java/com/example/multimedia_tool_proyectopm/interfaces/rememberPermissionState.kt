@@ -32,3 +32,7 @@ fun rememberPermissionState(permission: String): Pair<Boolean, () -> Unit> {
 @Composable
 fun rememberAudioPermission() =
     rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+
+@Composable
+fun rememberPhotoPermissionState() =
+    rememberPermissionState(Manifest.permission.CAMERA)

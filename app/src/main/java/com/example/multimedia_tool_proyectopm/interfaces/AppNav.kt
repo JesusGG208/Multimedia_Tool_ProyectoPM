@@ -11,7 +11,7 @@ import androidx.navigation.navArgument
 object Routes{
     const val HOME = "home"
     const val AUDIO_LIST = "audio_list"
-    const val AUDIO = "AUDIO"
+    const val AUDIO = "audio"
 }
 
 @Composable

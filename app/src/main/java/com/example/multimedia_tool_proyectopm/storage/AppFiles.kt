@@ -29,4 +29,24 @@ object AppFiles {
             ?.sortedByDescending { it.fechaCreacion }
             ?: emptyList()
     }
+
+    fun createImageFile(context: Context): File {
+        val fecha = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "imagen_${fecha}.jpg"
+        return File(context.filesDir, fileName)
+    }
+
+    fun getImages(context: Context): List<File> {
+        return context.filesDir.listFiles()
+            ?.filter {
+                it.name.endsWith("jpg") ||
+                        it.name.endsWith("png")
+            }
+            ?: emptyList()
+    }
+
+    fun changeExtension(file: File, extension: String): File {
+        val cleanName = file.nameWithoutExtension
+        return File(file.parent, "$cleanName.$extension")
+    }
 }
