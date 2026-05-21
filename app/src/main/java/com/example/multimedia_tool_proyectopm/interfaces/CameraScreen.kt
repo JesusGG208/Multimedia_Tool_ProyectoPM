@@ -1,10 +1,17 @@
 package com.example.multimedia_tool_proyectopm.interfaces
 
 import android.util.Log
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -16,53 +23,61 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.multimedia_tool_proyectopm.storage.AppFiles
 import java.io.File
+import java.util.concurrent.Executors
 
 @Composable
 fun CameraScreen() {
 
     val context = LocalContext.current
 
-    val lifecycle = LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    val (cameraGranted, requestPermission) =
+    val (hasPermission, requestPermission) =
         rememberPhotoPermissionState()
 
-    var cameraState by remember {
-        mutableStateOf("Preparada")
+    var cameraStatus by remember {
+        mutableStateOf("Inicializando")
     }
 
-    var currentPhoto by remember {
-        mutableStateOf("Sin capturas")
+    var lastImage by remember {
+        mutableStateOf("Sin imágenes")
     }
 
     val imageCapture = remember {
         mutableStateOf<ImageCapture?>(null)
     }
 
+    val cameraExecutor = remember {
+        Executors.newSingleThreadExecutor()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(16.dp),
+
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        Text("Captura de imágenes")
+        Text("Pantalla de cámara")
 
         Text(
-            if (cameraGranted)
+            if (hasPermission)
                 "Permiso concedido"
             else
-                "Permiso denegado"
+                "Permiso no concedido"
         )
 
-        Text("Estado: $cameraState")
+        Text("Estado: $cameraStatus")
 
-        Text("Última imagen: $currentPhoto")
+        Text("Última imagen: $lastImage")
 
-        if (!cameraGranted) {
+        if (!hasPermission) {
 
             Button(
-                onClick = requestPermission
+                onClick = {
+                    requestPermission()
+                }
             ) {
                 Text("Solicitar permiso")
             }
@@ -71,6 +86,7 @@ fun CameraScreen() {
         }
 
         AndroidView(
+
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
@@ -79,51 +95,52 @@ fun CameraScreen() {
 
                 val previewView = PreviewView(ctx)
 
-                val providerFuture =
+                val cameraProviderFuture =
                     ProcessCameraProvider.getInstance(ctx)
 
-                providerFuture.addListener({
-
-                    val provider = providerFuture.get()
-
-                    val previewUseCase =
-                        Preview.Builder()
-                            .build()
-                            .also {
-                                it.setSurfaceProvider(
-                                    previewView.surfaceProvider
-                                )
-                            }
-
-                    val captureUseCase =
-                        ImageCapture.Builder()
-                            .setCaptureMode(
-                                ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
-                            )
-                            .build()
-
-                    imageCapture.value = captureUseCase
+                cameraProviderFuture.addListener({
 
                     try {
 
-                        provider.unbindAll()
+                        val cameraProvider =
+                            cameraProviderFuture.get()
 
-                        provider.bindToLifecycle(
-                            lifecycle,
+                        val preview =
+                            Preview.Builder()
+                                .build()
+
+                        preview.surfaceProvider =
+                            previewView.surfaceProvider
+
+                        val capture =
+                            ImageCapture.Builder()
+                                .setCaptureMode(
+                                    ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+                                )
+                                .build()
+
+                        imageCapture.value = capture
+
+                        cameraProvider.unbindAll()
+
+                        cameraProvider.bindToLifecycle(
+                            lifecycleOwner,
                             CameraSelector.DEFAULT_BACK_CAMERA,
-                            previewUseCase,
-                            captureUseCase
+                            preview,
+                            capture
                         )
 
-                        cameraState = "Cámara iniciada"
+                        cameraStatus = "Cámara preparada"
 
                     } catch (e: Exception) {
 
-                        cameraState = "Error al iniciar"
+                        cameraStatus =
+                            "Error cámara"
 
                         Log.e(
-                            "CameraScreen",
-                            e.message ?: "Error cámara"
+                            "CAMERA",
+                            "ERROR INIT",
+                            e
                         )
                     }
 
@@ -134,31 +151,33 @@ fun CameraScreen() {
         )
 
         Button(
+
             onClick = {
 
                 val capture = imageCapture.value
 
                 if (capture == null) {
 
-                    cameraState = "La cámara aún no está lista"
+                    cameraStatus =
+                        "Captura no disponible"
 
                     return@Button
                 }
 
-                val imageFile: File =
-                    AppFiles.latestPhotoFile(context)
+                val photoFile: File =
+                    AppFiles.createImageFile(context)
 
-                imageFile.parentFile?.mkdirs()
-
-                val output =
-                    ImageCapture.OutputFileOptions.Builder(imageFile)
+                val outputOptions =
+                    ImageCapture.OutputFileOptions.Builder(photoFile)
                         .build()
 
-                cameraState = "Realizando captura..."
+                cameraStatus = "Capturando..."
 
                 capture.takePicture(
-                    output,
-                    ContextCompat.getMainExecutor(context),
+
+                    outputOptions,
+
+                    cameraExecutor,
 
                     object : ImageCapture.OnImageSavedCallback {
 
@@ -166,23 +185,36 @@ fun CameraScreen() {
                             outputFileResults: ImageCapture.OutputFileResults
                         ) {
 
-                            currentPhoto = imageFile.name
+                            lastImage = photoFile.name
 
-                            cameraState = "Imagen guardada"
+                            cameraStatus =
+                                "Imagen guardada"
+
+                            Log.d(
+                                "CAMERA",
+                                "Guardada correctamente"
+                            )
                         }
 
                         override fun onError(
                             exception: ImageCaptureException
                         ) {
 
-                            cameraState =
+                            cameraStatus =
                                 "Error: ${exception.message}"
+
+                            Log.e(
+                                "CAMERA",
+                                "ERROR FOTO",
+                                exception
+                            )
                         }
                     }
                 )
             }
         ) {
-            Text("Capturar foto")
+
+            Text("Hacer foto")
         }
     }
 }

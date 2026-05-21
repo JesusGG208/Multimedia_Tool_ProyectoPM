@@ -9,9 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import com.example.multimedia_tool_proyectopm.storage.AppFiles
 import com.example.multimedia_tool_proyectopm.storage.ImageStorage
 
@@ -20,21 +20,15 @@ fun PhotoScreen() {
 
     val context = LocalContext.current
 
-    val photoFile = AppFiles.latestPhotoFile(context)
-
-    var exists by remember {
-        mutableStateOf(photoFile.exists())
+    var info by remember {
+        mutableStateOf("Esperando")
     }
 
-    var message by remember {
-        mutableStateOf("Esperando acción")
-    }
-
-    var sourceBitmap by remember {
+    var originalBitmap by remember {
         mutableStateOf<Bitmap?>(null)
     }
 
-    var convertedBitmap by remember {
+    var resultBitmap by remember {
         mutableStateOf<Bitmap?>(null)
     }
 
@@ -42,10 +36,15 @@ fun PhotoScreen() {
         mutableStateOf(false)
     }
 
+    var currentFileName by remember {
+        mutableStateOf("Sin imagen")
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(18.dp),
+            .padding(16.dp),
+
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -54,18 +53,9 @@ fun PhotoScreen() {
             fontWeight = FontWeight.Bold
         )
 
-        Text(
-            text = "Archivo: ${photoFile.name}"
-        )
+        Text("Estado: $info")
 
-        Text(
-            text = if (exists)
-                "Imagen encontrada"
-            else
-                "No existe imagen"
-        )
-
-        Text("Estado actual: $message")
+        Text("Archivo actual: $currentFileName")
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -74,52 +64,76 @@ fun PhotoScreen() {
             Button(
                 onClick = {
 
-                    sourceBitmap = ImageStorage.readBitmap(photoFile)
+                    val folder = context.filesDir
 
-                    convertedBitmap = null
+                    val latestImage =
+                        folder.listFiles()
+                            ?.filter {
+                                it.extension == "jpg"
+                            }
+                            ?.maxByOrNull {
+                                it.lastModified()
+                            }
 
-                    message = if (sourceBitmap != null)
-                        "Imagen cargada correctamente"
-                    else
-                        "Error al cargar imagen"
+                    if (latestImage == null) {
+
+                        info = "No hay imágenes"
+
+                        return@Button
+                    }
+
+                    currentFileName = latestImage.name
+
+                    originalBitmap =
+                        BitmapFactory.decodeFile(
+                            latestImage.absolutePath
+                        )
+
+                    resultBitmap = null
+
+                    info = "Imagen cargada"
                 }
             ) {
-                Text("Abrir imagen")
+                Text("Cargar foto")
             }
 
             Button(
                 onClick = {
 
-                    val original = sourceBitmap
+                    val source = originalBitmap
 
-                    if (original == null) {
-                        message = "Debes cargar una imagen"
+                    if (source == null) {
+
+                        info = "Carga una imagen primero"
+
                         return@Button
                     }
 
-                    val memoryStream = java.io.ByteArrayOutputStream()
+                    val stream =
+                        java.io.ByteArrayOutputStream()
 
-                    val outputFormat =
+                    val format =
                         if (convertToPng)
                             Bitmap.CompressFormat.PNG
                         else
                             Bitmap.CompressFormat.JPEG
 
-                    original.compress(
-                        outputFormat,
+                    source.compress(
+                        format,
                         100,
-                        memoryStream
+                        stream
                     )
 
-                    val bytes = memoryStream.toByteArray()
+                    val bytes = stream.toByteArray()
 
-                    convertedBitmap = BitmapFactory.decodeByteArray(
-                        bytes,
-                        0,
-                        bytes.size
-                    )
+                    resultBitmap =
+                        BitmapFactory.decodeByteArray(
+                            bytes,
+                            0,
+                            bytes.size
+                        )
 
-                    message =
+                    info =
                         if (convertToPng)
                             "Convertida a PNG"
                         else
@@ -128,11 +142,12 @@ fun PhotoScreen() {
                     convertToPng = !convertToPng
                 }
             ) {
+
                 Text(
                     if (convertToPng)
-                        "Pasar a PNG"
+                        "Convertir PNG"
                     else
-                        "Pasar a JPG"
+                        "Convertir JPG"
                 )
             }
         }
@@ -140,14 +155,16 @@ fun PhotoScreen() {
         Button(
             onClick = {
 
-                val imageToSave = convertedBitmap
+                val image = resultBitmap
 
-                if (imageToSave == null) {
-                    message = "No hay imagen para guardar"
+                if (image == null) {
+
+                    info = "No hay imagen convertida"
+
                     return@Button
                 }
 
-                val destination =
+                val outputFile =
                     if (convertToPng)
                         AppFiles.processedPngFile(context)
                     else
@@ -159,37 +176,43 @@ fun PhotoScreen() {
                     else
                         Bitmap.CompressFormat.JPEG
 
-                val saved = ImageStorage.saveBitmap(
-                    imageToSave,
-                    destination,
-                    format
-                )
+                val success =
+                    ImageStorage.saveBitmap(
+                        image,
+                        outputFile,
+                        format
+                    )
 
-                message =
-                    if (saved)
-                        "Guardada: ${destination.name}"
+                info =
+                    if (success)
+                        "Guardada: ${outputFile.name}"
                     else
-                        "No se pudo guardar"
+                        "Error al guardar"
             }
         ) {
-            Text("Guardar resultado")
+
+            Text("Guardar imagen")
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp)
         ) {
 
-            sourceBitmap?.let { bitmap ->
+            originalBitmap?.let { bitmap ->
 
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
 
                     Text(
-                        "Original",
+                        text = "Original",
                         fontWeight = FontWeight.SemiBold
                     )
 
@@ -201,7 +224,7 @@ fun PhotoScreen() {
                 }
             }
 
-            convertedBitmap?.let { bitmap ->
+            resultBitmap?.let { bitmap ->
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -210,9 +233,10 @@ fun PhotoScreen() {
                     Text(
                         text =
                             if (convertToPng)
-                                "Formato JPG"
+                                "Resultado JPG"
                             else
-                                "Formato PNG",
+                                "Resultado PNG",
+
                         fontWeight = FontWeight.SemiBold
                     )
 

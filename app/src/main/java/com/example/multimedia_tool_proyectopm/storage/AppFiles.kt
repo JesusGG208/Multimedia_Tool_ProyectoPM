@@ -30,12 +30,10 @@ object AppFiles {
             ?: emptyList()
     }
 
-    fun latestPhotoFile(context: Context): File {
-
-        return File(
-            context.filesDir,
-            "latest_photo.jpg"
-        )
+    fun createImageFile(context: Context): File {
+        val fecha = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "imagen_${fecha}.jpg"
+        return File(context.filesDir, fileName)
     }
 
     fun processedPngFile(context: Context): File {
