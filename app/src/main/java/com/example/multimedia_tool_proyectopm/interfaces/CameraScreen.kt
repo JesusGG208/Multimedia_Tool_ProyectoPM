@@ -21,12 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavHostController
 import com.example.multimedia_tool_proyectopm.storage.AppFiles
 import java.io.File
 import java.util.concurrent.Executors
 
 @Composable
-fun CameraScreen() {
+fun CameraScreen(navController: NavHostController) {
 
     val context = LocalContext.current
 
@@ -215,6 +216,14 @@ fun CameraScreen() {
         ) {
 
             Text("Hacer foto")
+        }
+
+        Button(
+            onClick = {
+                navController.popBackStack()
+            }
+        ) {
+            Text("Volver")
         }
     }
 }

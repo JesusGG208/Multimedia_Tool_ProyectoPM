@@ -37,8 +37,8 @@ fun AppNav(navController: NavHostController) {
             AudioScreen(navController = navController, fileName = fileName)
         }
 
-        composable(Routes.IMAGE) { PhotoScreen() }
-        composable(Routes.CAMERA) { CameraScreen() }
+        composable(Routes.IMAGE) { PhotoScreen(navController) }
+        composable(Routes.CAMERA) { CameraScreen(navController) }
         composable(Routes.VIDEO) { VideoPlayerScreen(navController) }
     }
 }

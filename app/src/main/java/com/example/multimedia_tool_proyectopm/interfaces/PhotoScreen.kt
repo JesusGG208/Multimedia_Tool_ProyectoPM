@@ -12,11 +12,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.multimedia_tool_proyectopm.storage.AppFiles
 import com.example.multimedia_tool_proyectopm.storage.ImageStorage
 
 @Composable
-fun PhotoScreen() {
+fun PhotoScreen(navController: NavHostController) {
 
     val context = LocalContext.current
 
@@ -247,6 +248,14 @@ fun PhotoScreen() {
                     )
                 }
             }
+        }
+
+        Button(
+            onClick = {
+                navController.popBackStack()
+            }
+        ) {
+            Text("Volver")
         }
     }
 }
